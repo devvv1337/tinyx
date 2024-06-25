@@ -1,0 +1,86 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tinyx-ingress
+spec:
+  rules:
+    - host: tinyx.local
+      http:
+        paths:
+          - path: /posts
+            pathType: Prefix
+            backend:
+              service:
+                name: post-service
+                port:
+                  number: 8080
+          - path: /social
+            pathType: Prefix
+            backend:
+              service:
+                name: social-service
+                port:
+                  number: 8081
+          - path: /search
+            pathType: Prefix
+            backend:
+              service:
+                name: search-service
+                port:
+                  number: 8082
+          - path: /timeline
+            pathType: Prefix
+            backend:
+              service:
+                name: timeline-service
+                port:
+                  number: 8083
+          - path: /media
+            pathType: Prefix
+            backend:
+              service:
+                name: media-service
+                port:
+                  number: 8084
+          - path: /security
+            pathType: Prefix
+            backend:
+              service:
+                name: security-service
+                port:
+                  number: 8085
+          - path: /metrics
+            pathType: Prefix
+            backend:
+              service:
+                name: metrics-service
+                port:
+                  number: 8086
+          - path: /logging
+            pathType: Prefix
+            backend:
+              service:
+                name: logging-service
+                port:
+                  number: 8087
+          - path: /cache
+            pathType: Prefix
+            backend:
+              service:
+                name: cache-service
+                port:
+                  number: 8088
+          - path: /cleanup
+            pathType: Prefix
+            backend:
+              service:
+                name: cleanup-service
+                port:
+                  number: 8089
+          - path: /util
+            pathType: Prefix
+            backend:
+              service:
+                name: util-service
+                port:
+                  number: 8090
