@@ -6,7 +6,9 @@ import com.tinyx.base.TimelineRepository;
 import com.tinyx.models.PostEntity;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Event;
 import javax.inject.Inject;
+import javax.validation.ValidationException;
 import java.util.Date;
 import java.util.List;
 
@@ -24,6 +26,9 @@ public class PostService {
 
     @Inject
     TimelineRepository timelineRepository;
+
+    @Inject
+    Event<PostEntity> postEvent;
 
     public void createPost(PostEntity post) {
         if (post.getReplyTo() != null) {
@@ -44,11 +49,28 @@ public class PostService {
             }
         }
 
+        int contentCount = 0;
+        if (post.getContent() != null && !post.getContent().isEmpty()) {
+            contentCount++;
+        }
+        if (post.getRepostOf() != null) {
+            contentCount++;
+        }
+        // Assume post.getMedia() is a new field representing media
+        if (post.getMedia() != null) {
+            contentCount++;
+        }
+
+        if (contentCount == 0 || contentCount > 2) {
+            throw new ValidationException("Post must contain at least one and at most two of: text, media, repost");
+        }
+
         post.setCreatedAt(new Date());
         postRepository.createPost(post);
         searchRepository.indexPost(post);
         timelineRepository.updateUserTimeline(post.getUserId(), post.getId().toString());
         timelineRepository.updateHomeTimeline(post.getUserId(), post.getId().toString());
+        postEvent.fire(post);
     }
 
     public PostEntity getPost(String id) {
@@ -60,8 +82,16 @@ public class PostService {
     }
 
     public void deletePost(String id) {
-        postRepository.deletePost(id);
-        searchRepository.deletePost(id);
-        timelineRepository.deletePost(id);
+        PostEntity post = postRepository.getPost(id);
+        if (post != null) {
+            postRepository.deletePost(id);
+            searchRepository.deletePost(id);
+            timelineRepository.deletePost(id);
+            postEvent.fire(post);
+        }
+    }
+
+    public List<PostEntity> getPostReplies(String postId, int page, int size) {
+        return postRepository.getPostReplies(postId, page, size);
     }
 }

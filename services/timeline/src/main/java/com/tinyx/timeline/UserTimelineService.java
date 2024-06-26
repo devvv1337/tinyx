@@ -1,3 +1,4 @@
+
 package com.tinyx.timeline;
 
 import com.tinyx.base.TimelineRepository;
@@ -14,5 +15,9 @@ public class UserTimelineService {
 
     public List<String> getUserTimeline(String userId, int page, int size) {
         return timelineRepository.getUserTimeline(userId, page, size);
+    }
+
+    public List<String> getUserLikedPosts(String userId, int page, int size) {
+        return timelineRepository.getUserLikedPosts(userId, page, size);
     }
 }

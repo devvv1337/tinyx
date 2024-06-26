@@ -1,6 +1,7 @@
 package com.tinyx.social;
 
 import com.tinyx.models.Social;
+
 import java.util.List;
 
 public interface SocialService extends com.tinyx.base.SocialService {
@@ -9,4 +10,6 @@ public interface SocialService extends com.tinyx.base.SocialService {
     List<String> getFollowing(String userId);
     List<String> getBlockedUsers(String userId);
     List<String> getBlockingUsers(String userId);
+    List<String> getLikingUsers(String postId);  // Ajouté
+    List<String> getLikedPosts(String userId);  // Ajouté
 }

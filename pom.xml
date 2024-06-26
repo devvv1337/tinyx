@@ -22,10 +22,11 @@
         <module>base</module>
         <module>common</module>
         <module>services/post</module>
+        <module>services/timeline</module>
         <module>services/social</module>
         <module>services/util</module>
         <module>services/search</module>
-        <module>services/timeline</module>
+
         <module>services/media</module>
         <module>services/security</module>
         <module>services/metrics</module>

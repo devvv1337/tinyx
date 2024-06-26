@@ -16,6 +16,7 @@ public class PostEntity {
     private ObjectId replyTo;
     private ObjectId repostOf;
     private Date createdAt;
+    private String media; // Ajout du champ media
 
     // Getters and Setters
     public ObjectId getId() {
@@ -64,5 +65,13 @@ public class PostEntity {
 
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getMedia() { // Ajout du getter
+        return media;
+    }
+
+    public void setMedia(String media) { // Ajout du setter
+        this.media = media;
     }
 }

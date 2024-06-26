@@ -54,4 +54,14 @@ public class PostResource {
         postService.deletePost(id);
         return ApiResponse.success("Post deleted successfully");
     }
+
+    @GET
+    @Path("/{id}/replies")
+    public Response getPostReplies(@PathParam("id") String id,
+                                   @QueryParam("page") @DefaultValue("0") int page,
+                                   @QueryParam("size") @DefaultValue("10") int size) {
+        List<PostEntity> replies = postService.getPostReplies(id, page, size);
+        List<PostDTO> replyDTOs = replies.stream().map(DtoConverter::toPostDTO).collect(Collectors.toList());
+        return ApiResponse.success(replyDTOs);
+    }
 }

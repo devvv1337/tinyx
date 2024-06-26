@@ -51,6 +51,13 @@ public class PostRepository {
         getCollection().deleteMany(lt("createdAt", threshold));
     }
 
+    public List<PostEntity> getPostReplies(String postId, int page, int size) {
+        return getCollection().find(eq("replyTo", new ObjectId(postId)))
+                .skip(page * size)
+                .limit(size)
+                .into(new ArrayList<>());
+    }
+
     private MongoCollection<PostEntity> getCollection() {
         MongoDatabase database = mongoClient.getDatabase("tinyx");
         return database.getCollection("posts", PostEntity.class);

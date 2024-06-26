@@ -1,5 +1,11 @@
-com/tinyx/timeline/HomeTimelineResource.class
 com/tinyx/timeline/UserTimelineResource.class
+com/tinyx/timeline/FollowEvent.class
+com/tinyx/timeline/TimelineUpdateListener.class
+com/tinyx/timeline/UnlikeEvent.class
+com/tinyx/timeline/LikeEvent.class
+com/tinyx/timeline/HomeTimelineResource.class
 com/tinyx/timeline/TimelineRepositoryImpl.class
 com/tinyx/timeline/HomeTimelineService.class
+com/tinyx/timeline/UnfollowEvent.class
 com/tinyx/timeline/UserTimelineService.class
+com/tinyx/timeline/BlockEvent.class
