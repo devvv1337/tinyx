@@ -4,6 +4,7 @@ import com.tinyx.base.SocialService;
 import com.tinyx.base.SearchRepository;
 import com.tinyx.base.TimelineRepository;
 import com.tinyx.models.PostEntity;
+import org.bson.types.ObjectId;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Event;
@@ -31,6 +32,25 @@ public class PostService {
     Event<PostEntity> postEvent;
 
     public void createPost(PostEntity post) {
+        validatePost(post);
+
+        if (post.getId() == null) {
+            post.setId(new ObjectId());
+        }
+
+        post.setCreatedAt(new Date());
+        postRepository.createPost(post);
+        searchRepository.indexPost(post);
+        timelineRepository.updateUserTimeline(post.getUserId(), post.getId().toString());
+        timelineRepository.updateHomeTimeline(post.getUserId(), post.getId().toString());
+        postEvent.fire(post);
+    }
+
+    private void validatePost(PostEntity post) {
+        if (post.getContent() != null && post.getContent().length() > 160) {
+            throw new ValidationException("Content cannot exceed 160 characters");
+        }
+
         if (post.getReplyTo() != null) {
             if (!postRepository.exists(post.getReplyTo().toString())) {
                 throw new IllegalArgumentException("Reply post does not exist");
@@ -56,7 +76,6 @@ public class PostService {
         if (post.getRepostOf() != null) {
             contentCount++;
         }
-        // Assume post.getMedia() is a new field representing media
         if (post.getMedia() != null) {
             contentCount++;
         }
@@ -64,13 +83,6 @@ public class PostService {
         if (contentCount == 0 || contentCount > 2) {
             throw new ValidationException("Post must contain at least one and at most two of: text, media, repost");
         }
-
-        post.setCreatedAt(new Date());
-        postRepository.createPost(post);
-        searchRepository.indexPost(post);
-        timelineRepository.updateUserTimeline(post.getUserId(), post.getId().toString());
-        timelineRepository.updateHomeTimeline(post.getUserId(), post.getId().toString());
-        postEvent.fire(post);
     }
 
     public PostEntity getPost(String id) {

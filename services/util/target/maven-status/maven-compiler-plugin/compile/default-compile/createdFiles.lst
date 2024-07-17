@@ -1,6 +1,0 @@
-com/tinyx/util/ApiVersioningFilter.class
-com/tinyx/util/Neo4jDriverProducer.class
-com/tinyx/util/MongoClientProvider.class
-com/tinyx/util/ElasticSearchClientProvider.class
-com/tinyx/util/RateLimiter.class
-com/tinyx/util/RedisClientProvider.class

@@ -2,7 +2,6 @@ package com.tinyx.social;
 
 import com.tinyx.models.Social;
 import com.tinyx.timeline.BlockEvent;
-import com.tinyx.timeline.FollowEvent;
 import com.tinyx.timeline.LikeEvent;
 import com.tinyx.timeline.UnfollowEvent;
 
@@ -18,6 +17,7 @@ import static org.neo4j.driver.Values.parameters;
 
 @ApplicationScoped
 public class SocialServiceImpl implements SocialService {
+
     @Inject
     Driver driver;
 
@@ -35,36 +35,57 @@ public class SocialServiceImpl implements SocialService {
     @Override
     public void performAction(Social social) {
         try (Session session = driver.session()) {
-            String query = String.format("MATCH (a:User {userId: '%s'}), (b:User {userId: '%s'}) ",
-                    social.getUserId(), social.getTargetUserId());
+            String userId = social.getUserId();
+            String targetUserId = social.getTargetUserId();
+
+            // Validation de l'identifiant du post pour l'action 'like'
+            if ("like".equals(social.getAction()) && !isPostExists(session, targetUserId)) {
+                throw new IllegalArgumentException("Post does not exist: " + targetUserId);
+            }
+
             switch (social.getAction()) {
                 case "follow":
-                    query += "CREATE (a)-[:FOLLOWS]->(b)";
-                    session.run(query);
+                    session.run("MATCH (a:User {userId: $userId}), (b:User {userId: $targetUserId}) CREATE (a)-[:FOLLOWS]->(b)",
+                            parameters("userId", userId, "targetUserId", targetUserId));
                     break;
                 case "block":
-                    query += "CREATE (a)-[:BLOCKS]->(b)";
-                    session.run(query);
-                    blockEventPublisher.fire(new BlockEvent(social.getUserId(), social.getTargetUserId()));
+                    session.run("MATCH (a:User {userId: $userId}), (b:User {userId: $targetUserId}) CREATE (a)-[:BLOCKS]->(b)",
+                            parameters("userId", userId, "targetUserId", targetUserId));
+                    session.run("MATCH (a:User {userId: $userId})-[r:FOLLOWS]->(b:User {userId: $targetUserId}) DELETE r",
+                            parameters("userId", userId, "targetUserId", targetUserId));
+                    blockEventPublisher.fire(new BlockEvent(userId, targetUserId));
                     break;
                 case "like":
-                    query += "CREATE (a)-[:LIKES {timestamp: $timestamp}]->(b)";
-                    session.run(query, parameters("timestamp", System.currentTimeMillis()));
+                    long timestamp = System.currentTimeMillis();
+                    session.run("MATCH (a:User {userId: $userId}), (b:Post {postId: $targetUserId}) CREATE (a)-[:LIKES {timestamp: $timestamp}]->(b)",
+                            parameters("userId", userId, "targetUserId", targetUserId, "timestamp", timestamp));
                     break;
                 case "unfollow":
-                    query += "MATCH (a)-[r:FOLLOWS]->(b) DELETE r";
-                    session.run(query);
-                    break;
-                case "unblock":
-                    query += "MATCH (a)-[r:BLOCKS]->(b) DELETE r";
-                    session.run(query);
+                    session.run("MATCH (a:User {userId: $userId})-[r:FOLLOWS]->(b:User {userId: $targetUserId}) DELETE r",
+                            parameters("userId", userId, "targetUserId", targetUserId));
                     break;
                 case "unlike":
-                    query += "MATCH (a)-[r:LIKES]->(b) DELETE r";
-                    session.run(query);
+                    session.run("MATCH (a:User {userId: $userId})-[r:LIKES]->(b:Post {postId: $targetUserId}) DELETE r",
+                            parameters("userId", userId, "targetUserId", targetUserId));
                     break;
+                case "unblock":
+                    session.run("MATCH (a:User {userId: $userId})-[r:BLOCKS]->(b:User {userId: $targetUserId}) DELETE r",
+                            parameters("userId", userId, "targetUserId", targetUserId));
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid action: " + social.getAction());
             }
+        } catch (Exception e) {
+            // Journaliser l'erreur
+            System.err.println("Error performing action: " + social.getAction());
+            e.printStackTrace();
+            throw e;
         }
+    }
+
+    private boolean isPostExists(Session session, String postId) {
+        return session.run("MATCH (p:Post {postId: $postId}) RETURN p",
+                parameters("postId", postId)).hasNext();
     }
 
     @Override

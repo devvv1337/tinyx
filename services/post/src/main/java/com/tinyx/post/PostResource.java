@@ -27,7 +27,7 @@ public class PostResource {
         try {
             PostEntity post = DtoConverter.toPostEntity(postDTO);
             postService.createPost(post);
-            return ApiResponse.success(DtoConverter.toPostDTO(post));
+            return Response.status(Response.Status.CREATED).entity(DtoConverter.toPostDTO(post)).build();
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage(), Response.Status.BAD_REQUEST);
         }
